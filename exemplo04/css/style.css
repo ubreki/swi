@@ -1,0 +1,29 @@
+* {
+    margin: 10px;
+}
+
+.titulo {
+      font-size: 40px;
+      font-weight: bold;
+      font-family: sans-serif;
+    }
+
+.titulo span {
+      padding: 0;
+      margin: 0;
+    }
+
+.cor1 {
+    color: #E5D9F2;
+}
+
+.logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+.logo-container img {
+      width: 40px;
+      height: auto;
+    }

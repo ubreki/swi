@@ -1,46 +1,51 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title> Semana 01 - Exemplo 15 </title>
-		<meta charset="UTF-8">
+		<title>Exemplo PHP</title>
+		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta name="description" content="Free Web tutorials">
 		<meta name="keywords" content="HTML, CSS, JavaScript">
-		<meta name="author" content="John Doe">
-		<link rel="stylesheet" href="mystyle.css">
+		<meta name="author" content="SeuNome">
+		<link rel="stylesheet" href="css/style.css">
 		<style>
-			table, th, td {
-				border: 1px solid #000000;
+			table {
+				font-family: arial, sans-serif;
+				border-collapse: collapse; 
+				width: 90%;
+				/* border-spacing: 0px;*/
+			}
+
+			table, td, th {
+				border: 1px solid #000;
 			}
 			.imagem {
-				width: 250px;
+				width: 120px;
 			}
 		</style>
 	</head>
 	<body>
-		<h3>Semana 01 - Exemplo 8 - Detalhes do Produto</h3>
+		<h3>Semana 01 - Exemplo 07 - Detalhes do Produto</h3>
 		<?php
+			date_default_timezone_set("America/Sao_Paulo");
+			function formataData($data, $fomato){ // 2005-04-15 00:00:00
+				$datanova = date_create($data);
+				return date_format($datanova, $fomato);
+			}
+			
+			function formataData2($data){ // 2005-04-15 00:00:00
+				return substr($data, 8, 2). "/" .substr($data, 5, 2).
+				"/" . substr($data, 0, 4);
+			}
+			
+			function convertedata($data){
+				$data_vetor = explode("-", substr($data, 0, 10));
+				$novadata = implode("/", array_reverse ($data_vetor));
+				return $novadata;
+			}
+		
 			try {
-				date_default_timezone_set("America/Sao_Paulo");
-				
 				include("conexao.php");
-				// 0123456789
-				// 2017-05-01 00:00:00
-				function formataData($data, $formato){
-					$novadata = date_create($data);
-					return date_format($novadata, $formato);
-				}
-				
-				function convertedata2($data){
-					$novadata = substr($data, 8, 2).'/'.substr($data, 5, 2).'/'.substr($data, 0, 4);
-					return $novadata;
-				}
-				function convertedata($data){
-					$data_vetor = explode("-", substr($data, 0, 10));
-					$novadata = implode("/", array_reverse ($data_vetor));
-					return $novadata;
-				}
-				
 				// recuperando a informação da URL
 				// verifica se parâmetro está correto e dento da normalidade 
 				if(isset($_GET["id"]) && is_numeric(base64_decode($_GET["id"]))){
@@ -48,41 +53,43 @@
 				} else {
 					header("Location: index.php");
 				}
+				//$id = base64_decode($_GET['id']);
 				
 				// realizando a pesquisa com o id recebido
 				$sql = "select * from tabelaimg where id = $id";
 				$query = mysqli_query($conexao, $sql);
-
+				/*
+				if (!$query) {
+					die('Query Inválida: ' . @mysqli_error($conexao));  
+				}
+				*/
 				$dados = mysqli_fetch_assoc($query);
 				
 				echo "<table>
-						<tr>
-							<td>";
+					<tr>
+						<td>";
 				if (empty($dados["imagem"])){
-					$imagem = "semimagem.jpg";
+					$imagem = "semimagem.png";
 				}else{
 					$imagem = $dados["imagem"];
 				}
-				echo "<img class=\"imagem\" src=\"imagens/$imagem\">\n";
+				echo "<img src=\"imagens/$imagem\" >";
 				echo "</td>
-					<td width='400px'>\n";
-				echo "<b>Id: </b>{$dados["id"]}<br>\n";
-				echo "<b>Código: </b>".$dados['codigo']."<br>\n";
-				echo "<b>Produto: </b>".$dados['produto']."<br>\n";	
-				echo "<b>Descrição: </b>".$dados['descricao']."<br>\n";	
-				echo "<b>Data: </b>". formataData($dados['data'],"d/m/Y") ."<br>\n";	
-				echo "<b>Data: </b>". date_format(date_create($dados['data']),"d/m/Y") ."<br>\n";	
-				echo "<b>Valor: </b> R$ ". 
-					number_format($dados['valor'],2,",",".") ."<br>\n";
+					<td>";
+				echo "<b>Id: </b>".$dados['id']."<br>";
+				echo "<b>Codigo: </b>".$dados['codigo']."<br>";
+				echo "<b>Produto: </b>".$dados['produto']."<br>";	
+				echo "<b>Descrição: </b>{$dados["descricao"]}<br>";
+				echo "<b>Data: </b>" . formataData($dados["data"],"d/m/Y") . "<br>";				
+				echo "<b>Valor: </b> R$ ". number_format($dados["valor"], 2, ",", ".")."<br>";
 				echo "</td>
-					</tr>
-				</table>\n";
+				</tr>
+				</table>";
 				
 				mysqli_close($conexao);
-			} catch (Exception $e) {
-				echo "<h2>Aconteceu um erro:<br>" .
-				$e->GetMessage() ."</h2>\n";
-			}
+			} catch (Exception $e){
+				echo "<h4>Ocorreu um erro: <br>" . $e->GetMessage() . "</h4>\n";
+			}		
 		?>
 		<br>
 		<a href="index.php">Voltar</a>

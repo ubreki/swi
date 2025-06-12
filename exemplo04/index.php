@@ -1,24 +1,37 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title> Semana 01 - Exemplo 08 </title>
-		<meta charset="UTF-8">
+		<title>Exemplo PHP</title>
+		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta name="description" content="Free Web tutorials">
 		<meta name="keywords" content="HTML, CSS, JavaScript">
-		<meta name="author" content="John Doe">
-		<link rel="stylesheet" href="mystyle.css">
+		<meta name="author" content="SeuNome">
+		<link rel="stylesheet" href="css/style.css">
 		<style>
-			table, th, td {
-				border: 1px solid #000000;
+			table {
+				font-family: arial, sans-serif;
+				border-collapse: collapse; 
+				width: 90%;
+				/* border-spacing: 0px;*/
+			}
+
+			table, td, th {
+				border: 1px solid #000;
 			}
 			.imagem {
-				width: 100px;
+				width: 120px;
 			}
 		</style>
 	</head>
 	<body>
-		<h3>Semana 01 - Exemplo 08 - Listagem Geral de Produtos - Imagem</h3>
+		<div class="logo-container">
+		<img src="imagens/logo.png" alt="Logo da EletroDominus">
+		<h1 class="titulo">
+			<span>Eletro</span><span class="cor1">Dominus</span>
+		</h1>
+		</div>
+		<p>Praticidade e Tecnologia para o seu lar</p>
 		<?php
 			try {
 				include("conexao.php");
@@ -27,69 +40,76 @@
 				$sql = "select * from tabelaimg order by produto";
 				if ($_SERVER["REQUEST_METHOD"] == "POST") {
 					$produto = $_POST["produto"];
-					$sql = "select * from tabelaimg where 
-					produto like '%$produto%' order by produto";
+					$sql = "select * from tabelaimg 
+					where produto like '%$produto%' order by produto";
 				}
 				$query = mysqli_query($conexao, $sql);
-				
-				echo "<header>
-						<p><a href=\"inclusao.php\">Cadastrar</a>&nbsp;&nbsp;
-						<a href=\"index.php\">Atualizar</a></p>\n
-						<form action=\"#\" method = \"post\">
-							<input type=\"text\" name=\"produto\" maxlength=\"80\">
-							<button type=\"submit\">Pesquisar</button>
+				/*
+				if (!$query) {
+					exit("<h4>Query Inválida: " . @mysqli_error($conexao) . "</h4>\n");  
+				}
+				*/
+				echo "<h4>
+						<a href=\"inclusao.php\">Incluir</a>&nbsp;&nbsp;
+						<a href=\"index.php\">Atualizar</a>
+					</h4>\n";
+				echo "<div>
+						<form action=\"#\" method=\"post\">
+							<label for=\"prod\">Filtre por Produto:</label>
+							<input type=\"text\" name=\"produto\" id=\"prod\"
+							maxlength=\"30\">
+							<input type=\"submit\" value=\"Pesquisar\">
 						</form>
-					</header>\n";
+					</div>\n";
 				echo "<table>\n";// note que abri echo com aspas para executar
-				//comando html e os atributos das tags com apostrofo 
-				echo "<tr>\n
-						<th width=\"30px\" align=\"center\">Id</th>\n
-						<th width=\"100px\">Código</th>\n
-						<th width=\"250px\">Produto</th>\n
-						<th width=\"100px\">Valor</th>\n
-						<th width=\"100px\">Produto</th>\n
-						<th width=\"150px\">Opções</th>\n
-					</tr>\n";
+				//comando html e os atributos das tags com apostrofe 
+				echo "\t\t\t<tr>
+					<th width=\"30px\">Id</th>
+					<th width=\"100px\">Código</th>
+					<th width=\"250px\">Produto</th>
+					<th width=\"100px\">Valor</th>
+					<th width=\"100px\">Produto</th>
+					<th width=\"250px\">Opções</th>
+				</tr>\n";
 
-				while($dados = mysqli_fetch_assoc($query)){
-					echo "<tr>\n";
-					echo "<td align='center'>". $dados["id"]."</td>\n";
-					echo "<td>{$dados["codigo"]}</td>\n";
-					echo "<td>". $dados['produto']."</td>\n";
-					echo "<td align='right'> R$ ". 
-						number_format($dados['valor'],2,",",".")."</td>\n";		
-					// buscando na pasta imagem
+				while ($dados = mysqli_fetch_assoc($query)){
+					echo "\t\t\t<tr>\n";
+					echo "\t\t\t\t<td>". $dados['id']."</td>\n";
+					echo "\t\t\t\t<td>". $dados["codigo"]."</td>\n";
+					echo "\t\t\t\t<td>". $dados['produto']."</td>\n";
+					echo "\t\t\t\t<td> R$ " . number_format($dados["valor"], 2, ",", ".") . "</td>\n";		
+					// buscando a na pasta imagem
 					if (empty($dados["imagem"])){
-						$imagem = "semimagem.jpg";
+						$imagem = "semimagem.png";
 					}else{
 						$imagem = $dados["imagem"];
 					}
-					$id = base64_encode($dados["id"]);
-					echo "<td>
-							<a href=\"verproduto.php?id=$id\">
-								<img class=\"imagem\" src=\"imagens/$imagem\">
-							</a>
-						</td>\n";
-					echo "<td>
-							<a href=\"verproduto.php?id=$id\">
-								Visualizar
-							</a>&nbsp;&nbsp;
-							<a href=\"alteracao.php?id=$id\">
-								Alterar
-							</a>&nbsp;&nbsp;
-							<a href=\"excluir.php?id=$id\">
-								Apagar
-							</a>
-						</td>\n";
-					echo "</tr>\n";
+					$id = $dados["id"];
+					$id = base64_encode($id);
+					echo "\t\t\t\t<td>
+								<a href=\"verproduto.php?id=$id\">
+									<img class=\"imagem\" src=\"imagens/$imagem\">
+								</a>
+							</td>\n";
+					echo "\t\t\t\t<td>
+								<a href=\"verproduto.php?id=$id\">
+									Visualizar
+								</a>&nbsp;&nbsp;
+								<a href=\"edicao.php?id=$id\">
+									Editar
+								</a>&nbsp;&nbsp;
+								<a href=\"excluir.php?id=$id\">
+									Excluir
+								</a>
+							</td>\n";
+					echo "\t\t\t</tr>\n";
 				}
-				echo "</table>";
-				
-				mysqli_close($conexao);
-			} catch (Exception $e) {
-				echo "<h2>Aconteceu um erro:<br>" . $e->GetMessage() ."</h2>\n";
-			}
+				echo "\t\t</table>\n";
 			
+				mysqli_close($conexao);
+			} catch (Exception $e){
+				echo "<h4>Ocorreu um erro: <br>" . $e->GetMessage() . "</h4>\n";
+			}	
 		?>
 	</body>
 </html>
