@@ -1,106 +1,134 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Exemplo PHP</title>
+		<title>Processando Cadastro</title>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta name="description" content="Free Web tutorials">
-		<meta name="keywords" content="HTML, CSS, JavaScript">
-		<meta name="author" content="SeuNome">
 		<link rel="stylesheet" href="css/style.css">
 		<style>
+			body {
+				font-family: Arial, sans-serif;
+				max-width: 800px;
+				margin: 0 auto;
+				padding: 20px;
+			}
+			h3, h4 {
+				color: #333;
+			}
+			.success {
+				color: green;
+			}
+			.error {
+				color: red;
+			}
+			.button {
+				display: inline-block;
+				padding: 10px 20px;
+				background: #4CAF50;
+				color: white;
+				text-decoration: none;
+				border-radius: 4px;
+				margin-top: 20px;
+			}
 		</style>
 	</head>
 	<body>
-		<h3>Semana 01 - Exemplo 13 - Inclusão</h3>
 		<?php
 			try {
 				include("conexao.php");
-				// recuperando 
-				$codigo = $_POST["codigo"];
-				$produto = $_POST['produto'];	
-				$descricao = $_POST['descricao'];	
+				
+				// Verifica se o formulário foi submetido
+				if(!isset($_POST['submit'])) {
+					throw new Exception("Formulário não submetido corretamente.");
+				}
+				
+				// Validando campos obrigatórios
+				$required = ['codigo', 'produto', 'descricao', 'data', 'valor'];
+				foreach($required as $field) {
+					if(empty($_POST[$field])) {
+						throw new Exception("O campo $field é obrigatório.");
+					}
+				}
+				
+				// Recuperando dados
+				$codigo = intval($_POST["codigo"]);
+				$produto = mysqli_real_escape_string($conexao, $_POST['produto']);	
+				$descricao = mysqli_real_escape_string($conexao, $_POST['descricao']);	
 				$data = $_POST['data'];	
-				$valor = $_POST['valor'];
+				$valor = floatval($_POST['valor']);
 				
-				//Upload da foto do produto
-				$target_dir = "imagens/";
-				$arquivo = basename($_FILES["foto"]["name"]);
-				$target_file = $target_dir . $arquivo;
-				$uploadOk = 1;
-				$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-
-				// Check if image file is a actual image or fake image
-				if(isset($_POST["submit"])) {
+				// Processamento da imagem
+				$imagem = 'semimagem.png'; // Valor padrão
+				
+				if(isset($_FILES['foto']) && $_FILES['foto']['error'] == UPLOAD_ERR_OK) {
+					$target_dir = "imagens/";
+					if(!is_dir($target_dir)) {
+						mkdir($target_dir, 0755, true);
+					}
+					
+					$arquivo = basename($_FILES["foto"]["name"]);
+					$target_file = $target_dir . $arquivo;
+					$imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+					
+					// Verifica se é uma imagem real
 					$check = getimagesize($_FILES["foto"]["tmp_name"]);
-					if($check !== false) {
-						echo "<h4>O arquivo é uma imagem - " . $check["mime"] . ".</h4>\n";
-						$uploadOk = 1;
-					} else {
-						echo "<h4>Erro: O arquivo não é uma imagem!</h4>\n";
-						$uploadOk = 0;
+					if($check === false) {
+						throw new Exception("O arquivo não é uma imagem válida.");
 					}
-				}
-
-				// Check if file already exists
-				if (file_exists($target_file)) {
-					echo "<h4>Erro: O arquivo já existe no repositório!</h4>\n";
-					$uploadOk = 0;
-				}
-
-				// Check file size
-				if ($_FILES["foto"]["size"] > 500000) {
-					echo "<h4>Erro: O arquivo é muito grande!</h4>\n";
-					$uploadOk = 0;
-				}
-
-				// Allow certain file formats
-				if($imageFileType != "jpg" && $imageFileType != "png" 
-					&& $imageFileType != "jpeg"	&& $imageFileType != "gif" ) {
-					echo "<h4>Erro: Os únicos tipos imagens permidos são: 
-					JPG, JPEG, PNG e GIF!</h4>\n";
-					$uploadOk = 0;
-				}
-
-				// Check if $uploadOk is set to 0 by an error
-				if ($uploadOk == 0) {
-					echo "<h4>Erro: A imagem não foi gravada!</h4>\n";
-					// if everything is ok, try to upload file
-				} else {
-					if (move_uploaded_file($_FILES["foto"]["tmp_name"], $target_file)) {
-						echo "<h4>A imagem ".
-						htmlspecialchars($arquivo) . 
-						" foi gravada!</h4>\n";
+					
+					// Verifica se o arquivo já existe
+					if(file_exists($target_file)) {
+						$arquivo = time() . '_' . $arquivo; // Adiciona timestamp para evitar conflitos
+						$target_file = $target_dir . $arquivo;
+					}
+					
+					// Verifica tamanho do arquivo
+					if($_FILES["foto"]["size"] > 500000) {
+						throw new Exception("O arquivo é muito grande (máximo 500KB).");
+					}
+					
+					// Verifica formato do arquivo
+					$allowed = ['jpg', 'jpeg', 'png', 'gif'];
+					if(!in_array($imageFileType, $allowed)) {
+						throw new Exception("Apenas arquivos JPG, JPEG, PNG e GIF são permitidos.");
+					}
+					
+					// Tenta mover o arquivo
+					if(move_uploaded_file($_FILES["foto"]["tmp_name"], $target_file)) {
+						$imagem = $arquivo;
 					} else {
-						echo "<h4>Erro: A imagem não foi gravada!</h4>\n";
+						throw new Exception("Ocorreu um erro ao fazer upload da imagem.");
 					}
 				}
 				
-				// criando a linha de INSERT
-				$sqlinsert =  "insert into tabelaimg (codigo, produto, descricao, data, valor)
-				values ($codigo,'$produto', '$descricao', '$data', $valor)";
-				if ($uploadOk == 1) {
-					$sqlinsert =  "insert into tabelaimg (codigo, produto, descricao, data, valor, imagem)
-					values ($codigo,'$produto', '$descricao', '$data', $valor, '$arquivo')";
-				}
-				// executando instrução SQL
-				$resultado = mysqli_query($conexao, $sqlinsert);
-				echo "<h3>Registro Cadastrado com sucesso!</h3>\n";
+				// Inserção no banco de dados
+				$sql = "INSERT INTO tabelaimg (codigo, produto, descricao, data, valor, imagem) 
+						VALUES (?, ?, ?, ?, ?, ?)";
 				
-				/*
-				if (!$resultado) {
-					die('Query Inválida: ' . @mysqli_error($conexao));  
+				$stmt = mysqli_prepare($conexao, $sql);
+				mysqli_stmt_bind_param($stmt, "isssds", $codigo, $produto, $descricao, $data, $valor, $imagem);
+				
+				if(mysqli_stmt_execute($stmt)) {
+					echo "<h3 class='success'>Produto cadastrado com sucesso!</h3>";
+					echo "<h4>Detalhes do produto:</h4>";
+					echo "<p><strong>Código:</strong> $codigo</p>";
+					echo "<p><strong>Produto:</strong> $produto</p>";
+					echo "<p><strong>Valor:</strong> R$ ".number_format($valor, 2, ',', '.')."</p>";
+					if($imagem != 'semimagem.png') {
+						echo "<p><strong>Imagem:</strong> $imagem</p>";
+					}
 				} else {
-					echo "Registro Cadastrado com Sucesso";
+					throw new Exception("Erro ao cadastrar produto: " . mysqli_error($conexao));
 				}
-				*/
+				
+				mysqli_stmt_close($stmt);
 				mysqli_close($conexao);
-			} catch (Exception $e){
-				echo "<h4>Ocorreu um erro: <br>" . $e->GetMessage() . "</h4>\n";
+				
+			} catch(Exception $e) {
+				echo "<h3 class='error'>Erro no cadastro:</h3>";
+				echo "<p>".$e->getMessage()."</p>";
 			}
-			
 		?>
-		<br><br>
-		<input type='button' onclick="window.location='index.php';" value="Voltar">
+		<br>
+		<a href="index.php" class="button">Voltar para a lista</a>
 	</body>
 </html>

@@ -12,7 +12,7 @@
         :root {
             --primary: #7371FC;
             --secondary: #A594F9;
-            --light-bg: #F5EFFF;
+            --light-bg: #e1e1e1;
             --medium-bg: #E5D9F2;
             --border-color: #CDC1FF;
         }

@@ -37,6 +37,9 @@
                     <a href="inclusao.php">Incluir Novo Produto</a>
                     <a href="index.php">Atualizar Página</a>
                 </div>';
+
+            echo '<br><br>';
+
             echo '<div class="search-form">
                     <form action="#" method="post">
                         <label for="prod">Filtrar por Produto:</label>
@@ -44,7 +47,11 @@
                         <input type="submit" value="Pesquisar">
                     </form>
                 </div>';
+
+            echo '<br><br>';
+            
             echo '<div class="card-container">';
+
 
             while ($dados = mysqli_fetch_assoc($query)){
                 $id = base64_encode($dados["id"]);
